@@ -2,7 +2,9 @@ import api from './api';
 
 const spacesService = {
   getSpaces: async (params = {}) => {
+    console.log('spacesService.getSpaces called with params:', params);
     const response = await api.get('/spaces', { params });
+    console.log('spacesService.getSpaces response:', response.data);
     return response.data;
   },
 
@@ -31,6 +33,16 @@ const spacesService = {
 
   searchSpaces: async (searchParams) => {
     const response = await api.get('/spaces', { params: searchParams });
+    return response.data;
+  },
+
+  // Get spaces owned by a specific user
+  getUserSpaces: async (userId) => {
+    console.log('spacesService.getUserSpaces called for user:', userId);
+    const response = await api.get('/spaces', { 
+      params: { owner_id: userId } 
+    });
+    console.log('spacesService.getUserSpaces response:', response.data);
     return response.data;
   },
 
