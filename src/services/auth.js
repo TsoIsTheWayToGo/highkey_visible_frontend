@@ -2,21 +2,26 @@ import api from './api';
 
 const authService = {
   login: async (credentials) => {
-    const response = await api.post('/users/sign_in', {
+    const response = await api.post('/auth/login', {
       user: credentials,
     });
     return response.data;
   },
 
   register: async (userData) => {
-    const response = await api.post('/users', {
+    const response = await api.post('/auth/register', {
       user: userData,
     });
     return response.data;
   },
 
   logout: async () => {
-    await api.delete('/users/sign_out');
+    try {
+      await api.delete('/auth/logout');
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+      // Don't throw error for logout - always clear local storage
+    }
     localStorage.removeItem('authToken');
   },
 
