@@ -24,23 +24,42 @@ const useAuthStore = create(
           if (token && user) {
             localStorage.setItem('authToken', token);
             
+            // Add helper methods to user object
+            const enhancedUser = {
+              ...user,
+              can_host: user.user_type === 'host' || user.user_type === 'both',
+              can_advertise: user.user_type === 'advertiser' || user.user_type === 'both'
+            };
+            
             set({
-              user: user,
+              user: enhancedUser,
               token: token,
               isAuthenticated: true,
               loading: false,
               error: null,
             });
-            return { success: true, user, token };
+            return { success: true, user: enhancedUser, token };
           } else {
             throw new Error('Invalid response from server');
           }
         } catch (error) {
           console.error('Login error:', error);
-          const errorMessage = error.response?.data?.message || 
-                              error.response?.data?.error || 
-                              error.message || 
-                              'Login failed';
+          let errorMessage = 'Login failed';
+          
+          // Handle different error response formats
+          if (error.response?.data) {
+            const data = error.response.data;
+            if (data.message) {
+              errorMessage = data.message;
+            } else if (data.error) {
+              errorMessage = data.error;
+            } else if (data.errors && Array.isArray(data.errors)) {
+              errorMessage = data.errors.join(', ');
+            }
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
           set({ 
             error: errorMessage, 
             loading: false,
@@ -65,24 +84,42 @@ const useAuthStore = create(
           if (token && user) {
             localStorage.setItem('authToken', token);
             
+            // Add helper methods to user object
+            const enhancedUser = {
+              ...user,
+              can_host: user.user_type === 'host' || user.user_type === 'both',
+              can_advertise: user.user_type === 'advertiser' || user.user_type === 'both'
+            };
+            
             set({
-              user: user,
+              user: enhancedUser,
               token: token,
               isAuthenticated: true,
               loading: false,
               error: null,
             });
-            return { success: true, user, token };
+            return { success: true, user: enhancedUser, token };
           } else {
             throw new Error('Invalid response from server');
           }
         } catch (error) {
           console.error('Registration error:', error);
-          const errorMessage = error.response?.data?.message || 
-                              error.response?.data?.error || 
-                              error.response?.data?.errors?.join(', ') ||
-                              error.message || 
-                              'Registration failed';
+          let errorMessage = 'Registration failed';
+          
+          // Handle different error response formats
+          if (error.response?.data) {
+            const data = error.response.data;
+            if (data.message) {
+              errorMessage = data.message;
+            } else if (data.error) {
+              errorMessage = data.error;
+            } else if (data.errors && Array.isArray(data.errors)) {
+              errorMessage = data.errors.join(', ');
+            }
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          
           set({ 
             error: errorMessage, 
             loading: false,
@@ -100,6 +137,7 @@ const useAuthStore = create(
           await authService.logout();
         } catch (error) {
           console.error('Logout error:', error);
+          // Don't prevent logout on error
         } finally {
           localStorage.removeItem('authToken');
           set({
@@ -113,9 +151,16 @@ const useAuthStore = create(
       },
 
       updateUser: (userData) => {
-        set((state) => ({
-          user: { ...state.user, ...userData },
-        }));
+        set((state) => {
+          const updatedUser = { ...state.user, ...userData };
+          // Ensure helper methods are preserved
+          updatedUser.can_host = updatedUser.user_type === 'host' || updatedUser.user_type === 'both';
+          updatedUser.can_advertise = updatedUser.user_type === 'advertiser' || updatedUser.user_type === 'both';
+          
+          return {
+            user: updatedUser,
+          };
+        });
       },
 
       clearError: () => set({ error: null }),
@@ -123,11 +168,31 @@ const useAuthStore = create(
       // Initialize auth state from localStorage
       initializeAuth: () => {
         const token = localStorage.getItem('authToken');
-        if (token) {
-          // In a real app, you'd validate this token
+        const storedState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
+        
+        console.log('Initializing auth:', { token: !!token, storedState: !!storedState.state?.user });
+        
+        if (token && storedState.state?.user) {
+          const user = storedState.state.user;
+          // Add helper methods to stored user
+          const enhancedUser = {
+            ...user,
+            can_host: user.user_type === 'host' || user.user_type === 'both',
+            can_advertise: user.user_type === 'advertiser' || user.user_type === 'both'
+          };
+          
           set({
             token: token,
+            user: enhancedUser,
             isAuthenticated: true,
+          });
+        } else {
+          // Clear invalid state
+          localStorage.removeItem('authToken');
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
           });
         }
       },
