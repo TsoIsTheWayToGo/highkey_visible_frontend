@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, BellIcon } from '@heroicons/react/24/outline';
 import useAuthStore from '../../store/authStore';
 import AuthModal from '../auth/AuthModal';
+import { useUnreadMessages } from '../../hooks/useUnreadMessages';
 
 const Header = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { totalUnread, hasUnread } = useUnreadMessages();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const navigate = useNavigate();
@@ -18,6 +20,11 @@ const Header = () => {
 
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
+  };
+
+  const handleNotificationClick = () => {
+    navigate('/dashboard');
+    setIsMenuOpen(false);
   };
 
   return (
@@ -58,6 +65,21 @@ const Header = () => {
                   >
                     Dashboard
                   </Link>
+
+                  {/* Notification Bell */}
+                  <button
+                    onClick={handleNotificationClick}
+                    className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
+                    title="Messages"
+                  >
+                    <BellIcon className="h-6 w-6" />
+                    {hasUnread && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {totalUnread > 9 ? '9+' : totalUnread}
+                      </span>
+                    )}
+                  </button>
+                  
                   <div className="relative group">
                     <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600">
                       <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
@@ -140,6 +162,21 @@ const Header = () => {
                   >
                     Dashboard
                   </Link>
+
+                  {/* Mobile Notification */}
+                  <button
+                    onClick={handleNotificationClick}
+                    className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
+                  >
+                    <BellIcon className="h-5 w-5 mr-2" />
+                    Messages
+                    {hasUnread && (
+                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                        {totalUnread > 9 ? '9+' : totalUnread}
+                      </span>
+                    )}
+                  </button>
+                  
                   <Link
                     to="/profile"
                     className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600"
