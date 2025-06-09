@@ -1,8 +1,8 @@
-export const formatCurrency = (cents) => {
+export const formatCurrency = (dollarAmount) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(cents / 100);
+  }).format(dollarAmount);
 };
 
 export const formatSpaceType = (type) => {
