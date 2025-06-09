@@ -1,15 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
 import { MapPinIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { formatCurrency, formatSpaceType } from '../../utils/formatters';
 
 const SpaceCard = ({ space, onClick, isSelected }) => {
-  const handleClick = (e) => {
+  const handleCardClick = (e) => {
     e.preventDefault();
     if (onClick) {
       onClick(space);
     }
+  };
+
+  const handleViewDetailsClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const spaceDetailUrl = `/spaces/${space.id}`;
+    console.log('Navigating to:', spaceDetailUrl);
+    
+    window.location.href = spaceDetailUrl;
   };
 
   return (
@@ -17,14 +26,17 @@ const SpaceCard = ({ space, onClick, isSelected }) => {
       className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border ${
         isSelected ? 'ring-2 ring-blue-500 border-blue-200' : 'border-gray-200'
       } ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={handleClick}
+      onClick={handleCardClick}
     >
       {/* Image */}
       <div className="relative aspect-[4/3] w-full">
         <img
-          src={space.primary_image || 'https://via.placeholder.com/400x300'}
+          src={space.primary_image || `https://picsum.photos/400/300?random=${space.id}`}
           alt={space.title}
           className="h-full w-full object-cover"
+          onError={(e) => {
+            e.target.src = `https://picsum.photos/400/300?random=${space.id}`;
+          }}
         />
         <div className="absolute top-3 right-3">
           <span className="inline-flex items-center rounded-full bg-blue-600 px-2 py-1 text-xs font-medium text-white">
@@ -74,6 +86,9 @@ const SpaceCard = ({ space, onClick, isSelected }) => {
               src={space.owner?.avatar_url || `https://ui-avatars.com/api/?name=${space.owner?.first_name}&background=3b82f6&color=fff`}
               alt={space.owner?.first_name}
               className="h-8 w-8 rounded-full mr-2"
+              onError={(e) => {
+                e.target.src = `https://ui-avatars.com/api/?name=${space.owner?.first_name || 'User'}&background=3b82f6&color=fff`;
+              }}
             />
             <span className="text-sm text-gray-600 truncate max-w-[80px]">
               {space.owner?.first_name}
@@ -82,13 +97,12 @@ const SpaceCard = ({ space, onClick, isSelected }) => {
         </div>
         
         {/* CTA Button */}
-        <Link
-          to={`/spaces/${space.id}`}
+        <button
+          onClick={handleViewDetailsClick}
           className="block w-full rounded-md bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 transition-colors duration-200"
-          onClick={(e) => e.stopPropagation()}
         >
           View Details
-        </Link>
+        </button>
       </div>
     </div>
   );
