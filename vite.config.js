@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'build',
+    // Remove outDir to use Vite's default 'dist' directory
     sourcemap: true,
   },
   define: {
